@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: KEYVOX サポートポータル
+    url: https://support.keyvox.co
+    about: KEYVOX API / コネクタ / 管理画面そのものの問題はこちらへ
+  - name: KEYVOX Discord
+    url: https://discord.gg/Etd3vZPKhb
+    about: 軽い質問・相談はコミュニティへどうぞ
+  - name: セキュリティ脆弱性報告
+    url: https://github.com/Unlock-the-World/keyvox-mcp/security/advisories/new
+    about: 公開せず非公開で報告してください (詳細は SECURITY.md)

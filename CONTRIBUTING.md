@@ -48,6 +48,14 @@ PR を提出する前に、可能な範囲で以下を実施してください:
 - 軽い質問は [KEYVOX Discord コミュニティ](https://discord.gg/Etd3vZPKhb) で
 - 業務インパクトを伴う質問は [KEYVOX サポートポータル](https://support.keyvox.co) で
 
+## 行動規範
+
+参加者は [Code of Conduct](./CODE_OF_CONDUCT.md) に同意したものとみなされます。
+
+## セキュリティ脆弱性
+
+物理ロックを扱う性質上、セキュリティ問題は GitHub Issues に書かず [SECURITY.md](./SECURITY.md) の手順で非公開報告してください。
+
 ## ライセンス
 
 コントリビュートしたコード・ドキュメントは [MIT License](./LICENSE) の下で公開されることに同意したものとみなします。
