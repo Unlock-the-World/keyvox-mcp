@@ -1,113 +1,149 @@
 # KEYVOX enum値辞書
 
-API/MCPツールのレスポンスに出てくる **コード値・enum値** の意味を集約した辞書。
+API/MCPツールのレスポンスに出てくる **コード値・enum 値** の意味を集約した辞書。
 
-## ⚠️ ステータス
+## 出典
 
-このドキュメントは #13 学習②の実機検証で観測した値と、`mcp-api.yaml` / `openapi.yaml` に書かれている記述から構成されている。**`?` 印は値の意味が未確定で、メンター確認後に正式値で更新する必要がある**。
+このドキュメントは公式 **[KEYVOX 開発者ポータル](https://developers.keyvox.co)** が公開している OpenAPI 仕様 (`openapi.yaml`) を一次ソースとしており、実機検証 (BCLtest 環境) で観測した値も補足として記載しています。差分がある場合は公式仕様を優先してください。
 
 ## 1. `placeType` (場所カテゴリ)
 
-`mcp-api.yaml` の `unit_list` parameters 記述より：
+API ごとに2系統の値が返るので注意。
+
+### 場所登録系 (`addPlace`/`updatePlace` 等)
 
 | 値 | 意味 |
 |---|---|
-| `hotel` | ビルディング |
-| `locker` | ロッカー |
-| `doubleLocker` | 両面開きロッカー |
-| `vendingMachine` | 自動販売機 |
-| `facility` | 施設（`getUnits` 経由で観測） |
+| `hotel` | ビルディング（常に `hotel` 固定、指定しても無視される旨が公式仕様に記載） |
 
-**注意**: 同じ場所でも `place_list` では `"hotel"`、`getUnits` では `"facility"` が返ることを観測（#13）。スキーマが API ごとに違うため、用途に応じて使い分け。
+### ユニット詳細系 (`unit_detail` / `getUnits` 等)
+
+| 値 | 意味 |
+|---|---|
+| `facility` | ドア（部屋） ※スマートロック用 |
+| `locker_single` | スマートロッカー（片面開き） |
+| `locker_double` | スマートロッカー（両面開き） |
+
+> 補足: `mcp-api.yaml` の `unit_list` パラメータ記述では `hotel`/`locker`/`doubleLocker`/`vendingMachine`/`facility` も列挙されており、MCP ラッパー側で別系統の値を受け付ける可能性あり。
 
 ## 2. `orderStateCode` (予約ステータス)
 
-実機観測値（要メンター確認）：
-
-| 値 | 観測コンテキスト | 推測される意味 |
-|---|---|---|
-| `O` | `checkin/checkout` が過去、`livedDays=1` | チェックアウト済み / 完了 ? |
-| `Q` | `checkin/checkout` が未来、`livedDays` が極端に大きい (575等) | 確定済み・未利用 ? |
-
-**確認必要**: 全ステータス一覧（O/Q 以外の値の有無）、各値の正式な意味、状態遷移図
+| 値 | 意味 |
+|---|---|
+| `Q` | 予約申込 |
+| `B` | 予約拒否 |
+| `A` | 未チェックイン |
+| `C` | キャンセル済み |
+| `I` | チェックイン済み |
+| `M` | メンテ中 |
+| `O` | チェックアウト済み |
 
 ## 3. `payStateCode` (支払ステータス)
 
-実機観測値：
-
-| 値 | 観測 |
+| 値 | 意味 |
 |---|---|
-| `20` | 全予約で観測 |
+| `0` | 未支払 |
+| `2` | 支払中 |
+| `30` | 一部支払済 |
+| `20` | 支払完了 |
+| `40` | 支払失敗 |
 
-**確認必要**: 他の値の存在、値の意味（10=未払い, 20=支払済み 等？）
-
-## 4. `etype` (ロックイベント種別、`getLockHistory`)
-
-実機観測値：
-
-| 値 | 観測 |
-|---|---|
-| `9` | userName=API のとき | 解錠系? |
-
-**確認必要**: 値の全リスト。施錠/解錠/タイムアウト/異常等の区別
-
-## 5. `channelCode` (予約チャネル)
-
-実機観測値：
+## 4. `payTypeCode` (支払方法)
 
 | 値 | 意味 |
 |---|---|
-| `line` | LINE経由予約 |
+| `stripeCreditCard` | クレジットカード (Stripe) |
+| `offlinePayment` | オフライン決済 |
+| `cash` | 現金 |
 
-**確認必要**: 他のチャネル（直販、agoda、Beds24、Booking.com 等）の値
-
-## 6. `lockType` (ロック機種)
-
-実機観測値：
+## 5. `etype` (ロックイベント種別、`getLockHistory`)
 
 | 値 | 意味 |
 |---|---|
-| `BCL-QR1` | KEYVOX QR1（QRコード対応スマートロック） |
+| `1` | PIN (暗証番号) |
+| `2` | Card (NFC カード) |
+| `5` | OPEN/CLOSE Button (スマートロックのボタン) |
+| `6` | Knob Button (サムターン) |
+| `9` | Application (API 含むアプリ等のサービス) |
 
-**確認必要**: KEYVOX 他機種（BR1、新機種等）、L!NKEY、OPELO、igloohome 等の他社ロック値
+> `etype=1` のときに限り `pinCode` フィールドに使われた暗証番号が返却される。
 
-## 7. `relateType` (関連ゲートウェイ機種)
-
-実機観測値：
+## 6. `channelCode` (予約チャネル)
 
 | 値 | 意味 |
 |---|---|
-| `BCL-BR1` | KEYVOX BR1（ブリッジ機器） |
+| `BACS` | KEYVOX 管理画面 / API 経由作成 |
+| `GO` | (公式仕様列挙のみ) |
+| `googleCalendar` | Google カレンダー連携 |
+| `KeyvoxWeb` | KEYVOX Web |
+| `Mykeyvox` | Mykeyvox |
+| `TABLET` | タブレット |
+| `NEPPAN` | ねっぱん |
+| `BATCH` | バッチ処理 |
+| `BCLCHECKIN` | BCL チェックイン |
+| `CHECKIN` | チェックイン |
 
-## 8. `pinType` (PIN種別、`getLockStatus`)
+> 補足: 実機観測で `line` (LINE 経由) が返ることがあるが公式 enum には未掲載。今後の追加候補。
 
-実機観測値：
+## 7. `orderSource` (予約サイト名)
 
-| 値 | 観測 |
+公式仕様上は自由記述 (`type: string`)。例: `楽天トラベル`, `line`, `BACS` 等。
+
+## 8. `lockType` (ロック機種)
+
+公式 OpenAPI に enum 列挙はなし（自由記述）。実機観測:
+
+| 値 | 意味 |
 |---|---|
-| `1` | デフォルト値？ |
+| `BCL-QR1` | KEYVOX QR1 (QR コード対応スマートロック) |
 
-**確認必要**: 種別の意味（オンラインQR/オフラインQR/手動入力等？）
+> KEYVOX 他機種 (BR1 等)、`L!NKEY` / `OPELO` / `igloohome` 等他社ロックの正規値は実環境で観測して追加すること。
 
-## 9. `wifi` (Wi-Fi接続状態、`getLockStatus`)
+## 9. `relateType` (BCL-QR1 と連動するロックのタイプ)
+
+公式仕様での説明: 「BCL-QR1 と連動して利用しているロックのタイプ」。BCL-QR1 に連動するロックがある場合のみ返却。
+
+| 値 | 意味 |
+|---|---|
+| `PiACK II` | (公式仕様の example) |
+| `BCL-BR1` | KEYVOX BR1 (実機観測) |
+
+> ⚠️ 旧版ドキュメントでは「関連ゲートウェイ機種」と説明していたが、公式仕様では「連動するロックの機種」が正しい。
+
+## 10. `pinType` (暗証番号方式)
+
+| 値 | 意味 |
+|---|---|
+| `1` | オンライン方式 |
+| `2` | オフライン方式 |
+| `3` | 暗証番号非対応 |
+
+> 項目が存在しない場合は `3:暗証番号非対応` として扱うこと。
+
+## 11. `pinStatus` (暗証番号ステータス)
+
+| 値 | 意味 |
+|---|---|
+| `0` | 未発行 |
+| `1` | 発行中 |
+| `2` | 発行済 |
+| `4` | 削除済 |
+
+## 12. `wifi` (Wi-Fi 接続状態、`getLockStatus`)
 
 | 値 | 意味 |
 |---|---|
 | `"1"` | 接続中 |
-| `"0"` | 切断 (推測) |
+| `"0"` | 切断（推測） |
 
-## 10. `stateType` (注文ステータス・listReservations引数)
-
-`mcp-api.yaml` 記述より：
+## 13. `stateType` (注文の通常/重要区分)
 
 | 値 | 意味 |
 |---|---|
 | `0` | 通常 |
 | `1` | 重要 |
 
-## 11. `isAssigned` (割当フラグ・listReservations引数)
-
-`mcp-api.yaml` 記述より：
+## 14. `isAssigned` (割当フラグ、`listReservations` 引数)
 
 | 値 | 意味 |
 |---|---|
@@ -115,41 +151,55 @@ API/MCPツールのレスポンスに出てくる **コード値・enum値** の
 | `0` | 未割当 |
 | `1` | 割当済み |
 
-## 12. `total` (totalフィルタ・listReservations引数)
-
-`mcp-api.yaml` 記述より：
+## 15. `total` (total フィルタ、`listReservations` 引数)
 
 | 値 | 意味 |
 |---|---|
 | `0` | すべて |
-| `1` | (キャンセル・チェックアウト)以外 |
+| `1` | (キャンセル・チェックアウト) 以外 |
 
-## 13. `businessType` (業務カテゴリ、reservation返却)
-
-実機観測値：
+## 16. `businessType` (ビジネスタイプ、reservation / plan 返却)
 
 | 値 | 意味 |
 |---|---|
-| `rentalSpace` | レンタルスペース業 |
+| `housing` | 宿泊 |
+| `rentalSpace` | レンタルスペース |
+| `conferenceRoom` | コーワーキング |
+| `locker` | ロッカー |
+| `airdrop` | ドロップイン |
+| `vendingMachine` | 自動販売機 |
 
-**確認必要**: 他のbusinessType（hotel, coworking, locker 等）
-
-## 14. `orderSource` (予約ソース、reservation返却)
-
-実機観測値：
+## 17. `releaseType` (掲載タイプ、plan 返却)
 
 | 値 | 意味 |
 |---|---|
-| `line` | LINE経由 |
+| `0` | 公開しない |
+| `1` | 一般公開 |
+| `2` | 限定公開 |
 
-`channelCode` との関係要確認。
+## 18. `stockType` (利用単位、plan 返却)
+
+| 値 | 意味 |
+|---|---|
+| `0` | 独占 |
+| `1` | 共有 |
+
+## 19. `cancelOrderPayFlag` (キャンセル料金区分)
+
+| 値 | 意味 |
+|---|---|
+| `1` | キャンセル可能 |
+| `0` | キャンセル不可 |
 
 ## 値の用法ガイドライン
 
 - **コードを直接画面に出さない**: ユーザー向け回答では `O` → 「チェックアウト済み」のように日本語に変換する
-- **不明値が返ったら警告**: 上記表にない値が返ってきたら「未知のコード `<値>` が返却された」とログに残し、安全側に倒した挙動をする
+- **未知の値が返ったら警告**: 上記表にない値が返ってきたら「未知のコード `<値>` が返却された」とログに残し、安全側に倒した挙動をする
+- **公式仕様優先**: 実機観測値と公式仕様が食い違う場合は、公式仕様を一次情報として扱い、観測値は補足として記録する
 
 ## 関連ドキュメント
 - リソース定義: `keyvox-entities.md`
 - 業務シナリオ→ツール: `keyvox-tool-map.md`
-- ID解決パターン: `keyvox-id-resolution.md`
+- ID 解決パターン: `keyvox-id-resolution.md`
+- セットアップ・再認証: `keyvox-mcp-setup.md`
+- 公式 API リファレンス: <https://developers.keyvox.co>
