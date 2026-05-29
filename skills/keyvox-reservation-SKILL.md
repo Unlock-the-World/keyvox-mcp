@@ -50,18 +50,24 @@ KEYVOX予約管理5業務を1スキルで対応する。
 
 ### 🔑 鍵情報の出力ルール（唯一の正典・これ以外は扱わない）
 
-**正規ソースは `getReservation` の `unitPinList[]` のみ。**
+ゲストに提示・配布してよいのは、意味としては **2 つだけ**:
 
-ゲストに提示・配布してよいのは、次の **2 つだけ**:
+| 出力してよいもの | 用途 |
+|---|---|
+| 暗証番号 | パネル直接入力 |
+| ウォレット取込用URL | スマホウォレットに取り込める短縮鍵URL |
 
-| 出力してよいもの | フィールド | 用途 |
-|---|---|---|
-| 暗証番号 | `pin` (= `panelPin`) | パネル直接入力 |
-| 鍵URL | `qrShortUrl` | スマホウォレットに取り込める短縮鍵URL |
+**API ごとにフィールド名が違う** ので、発行経路に応じて正しいフィールドを使うこと:
 
-**上記 2 つ以外 (`qrUrl` / `shareUrl` / `urlKey` / `qrCode` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等) は出力も提案もしない。** ユーザーから明示的かつ強い要望があった場合のみ例外的に出す。
+| 取得元 (API) | 暗証番号 | ウォレット取込用URL | 想定ケース |
+|---|---|---|---|
+| `getReservation.unitPinList[]` | `pin` (= `panelPin`) | `qrShortUrl` | 予約紐付きの鍵 (本スキルのデフォルト) |
+| `createLockPin` (レスポンス) | `pinCode` | `shortQrUrl` | 予約と無関係のアドホック発行 |
+| `issueLockKey` (レスポンス) | `pinCode` | `shortQrUrl` | ユーザー (アクセス権) 紐付きの発行 |
 
-**マルチロックのユニット（玄関＋部屋など）:** 通過する全ドア分の `qrShortUrl` を **ドアごとに 1 本ずつ** 提示する。
+**上記 2 つ以外のフィールド (`qrUrl` / `shareUrl` / `urlKey` / `qrCode` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等) は出力も提案もしない。** ユーザーから明示的かつ強い要望があった場合のみ例外的に出す。
+
+**マルチロックのユニット（玄関＋部屋など）:** 通過する全ドア分のウォレット取込用URLを **ドアごとに 1 本ずつ** 提示する。
 
 ### 手順
 1. **必須情報を聞き取る** (不足があれば質問):
@@ -98,9 +104,9 @@ KEYVOX予約管理5業務を1スキルで対応する。
    - **commodityList** (Step 3 で取得した plan を [{commodityId, commodityName, commodityCategory:"Plan", commodityDate:checkin, commodityNum:1, price, priceTax, unitId}] で渡す)
    - unitNum: 1
    - unitList: [{unitId, checkin, checkout, contactName, customerNum}]
-8. **結果報告（鍵は PIN と `qrShortUrl` のみ）**:
+8. **結果報告（鍵は 暗証番号 と ウォレット取込URL の 2 つだけ）**:
    - 作成直後に `getReservation(placeId, orderId)` を呼び `unitPinList[]` を取得
-   - ドアごとに以下 2 つだけ提示:
+   - ドアごとに `unitPinList[].pin` と `unitPinList[].qrShortUrl` を提示:
    ```
    ✅ 予約を作成しました
    - 予約ID: ABCDEFGHI

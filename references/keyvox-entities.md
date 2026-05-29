@@ -74,22 +74,39 @@ erDiagram
 **操作**: `unlock`, `createLockPin`, `disableLockPin` 等
 
 ### 4. `pin` (暗証番号 / 鍵)
-**意味**: unit に対して期間限定で発行する数字キー + 鍵URL。**予約に紐付けて発行されるのが典型**。
+**意味**: unit に対して期間限定で発行する数字キー + 鍵URL。予約に紐付けて発行されるのが典型だが、予約と無関係なアドホック発行・ユーザー紐付き発行もある。
 
-| 主要フィールド | 種別 | 説明 |
-|---|---|---|
-| `pin` (= `panelPin`) | 🟢 ゲスト配布可 | パネル直接入力用の暗証番号 |
-| `qrShortUrl` | 🟢 ゲスト配布可 | スマホウォレット取込可の短縮鍵URL |
-| `pinId` | 内部用 | 一意ID |
-| `sTime` / `eTime` | 内部用 | 有効期間 (UNIX 秒) |
-| `qrCode` | ⚠️ 配布禁止 | 内部トークン (断片値、QR画像生成には使えない) |
-| `qrUrl` | ⚠️ 配布禁止 | QR画像URL (通常用途なし) |
-| `shareUrl` | ⚠️ 配布禁止 | 別用途の共有URL |
-| `urlKey` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等 | ⚠️ 配布禁止 | いずれもゲスト配布対象外 |
+**ゲスト配布対象 (意味としては 2 つだけ)**:
 
-**重要**: ゲスト配布に使うのは `pin`（暗証番号）と `qrShortUrl`（スマホウォレット取込可の短縮鍵URL）の **2 つのみ**。`qrCode` は内部トークン、`qrUrl` は画像、`shareUrl` は別用途で、いずれも通常配布しない。予約に紐づく鍵は `getReservation.unitPinList[]` でワンショット取得する。詳しい運用ルールは各 SKILL.md の「鍵情報の出力ルール」セクション参照。
+| 意味 | 用途 |
+|---|---|
+| 暗証番号 | パネル直接入力 |
+| ウォレット取込用URL | スマホウォレット取込可の短縮鍵URL |
 
-**取得**: `getReservation` (推奨・上記 2 値を含む)。`getLockPinList` / `getLockPinStatus` / `getUnitPinList` は内部確認用途。
+**発行 / 取得経路ごとのフィールド名 (API ごとに違うので注意)**:
+
+| 発行 / 取得API | 暗証番号フィールド | URLフィールド | 典型ケース |
+|---|---|---|---|
+| `getReservation.unitPinList[]` | `pin` (= `panelPin`) | `qrShortUrl` | 予約紐付きの鍵を一括取得 |
+| `createLockPin` レスポンス | `pinCode` | `shortQrUrl` | 予約と無関係のアドホック発行 / 追加発行 |
+| `issueLockKey` レスポンス | `pinCode` | `shortQrUrl` | ユーザー (アクセス権) 紐付きの発行 |
+
+**配布禁止フィールド (出力も提案もしない)**:
+
+| フィールド | 理由 |
+|---|---|
+| `qrCode` | ロック配信前提の内部トークン (`createLockPin` / `issueLockKey` / `getLockPinList` 等のレスポンスに出る)。QR 画像化はできるが、配布する必要がない |
+| `qrUrl` | QR 画像 URL。通常配布対象外 |
+| `shareUrl` | 別用途の共有 URL |
+| `urlKey` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等 | いずれもゲスト配布対象外 |
+
+**重要**: ゲスト配布は **意味としては「暗証番号 + ウォレット取込URL」の 2 つだけ**。フィールド名は呼ぶ API によって `pin` / `qrShortUrl` か `pinCode` / `shortQrUrl` のどちらかになるので使い分けること。詳しい運用ルールは各 SKILL.md の「鍵情報の出力ルール」セクション参照。
+
+**取得**:
+- 予約紐付きの鍵: `getReservation` (推奨・`unitPinList[]` でワンショット取得)
+- アドホック発行: `createLockPin` を呼んだレスポンスから直接取得
+- ユーザー紐付き発行: `issueLockKey` を呼んだレスポンスから直接取得
+- 内部確認用途: `getLockPinList` / `getLockPinStatus` / `getUnitPinList`
 
 **操作**: `createLockPin`, `changeLockPin`, `disableLockPin`
 
