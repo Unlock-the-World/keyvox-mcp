@@ -12,7 +12,7 @@ KEYVOX予約管理5業務を1スキルで対応する。
 このスキルは **Claude.ai のカスタムコネクタ** 経由でのみ動作します。
 401 / E2003 / DCR エラー時の対処、再認証の定型応答、Claude 向けガイドラインは以下に集約しています:
 
-👉 **必読**: [`references/keyvox-mcp-setup.md`](../../references/keyvox-mcp-setup.md)
+👉 **必読**: [`references/keyvox-mcp-setup.md`](../references/keyvox-mcp-setup.md)
 
 エラー発生時は同ファイル内の「**401 / E2003 エラー時にユーザーへ返す定型応答**」を **そのまま** ユーザーに出力すること（要約・言い換え禁止）。
 
