@@ -17,11 +17,11 @@
 - **前提**: placeId（複数物件運営ならplace_listから選択）
 - **注意**: `total=1` を指定するとキャンセル・チェックアウト済を除外できる
 
-### 2. チェックイン状況の確認（鍵取得済みか）
-- **主ツール**: `getReservation` で `unitPinList[].pin` / `qrShortUrl` の存在を確認
-- **補助**: `getLockHistory` でユーザーが実際に解錠したか確認
-- **前提**: orderId（listReservationsから取得）
-- **注意**: PINが発行されていても解錠していない＝鍵は受け取ったが利用未開始
+### 2. チェックイン状況の確認（予約ステータス）
+- **主ツール**: `listReservations` / `getReservation` で `orderStateCode` を確認 (`A`=未, `I`=済, `O`=チェックアウト)
+- **補助**: `getReservation` の `realCheckin` / `realCheckout` (実時刻)
+- **前提**: placeId / orderId
+- **注意**: チェックイン判定は `orderStateCode` のみで完結する。解錠履歴 (`getLockHistory`) は使わない。「実際に解錠したか／ノーショウか」はシナリオ 8 (清掃) / `keyvox-housekeeping` の領域として明示的に分離
 
 ### 3. 実利用の確認（解錠イベント）
 - **主ツール**: `getLockHistory` (etypeで解錠系イベントをフィルタ、enums.md参照)
