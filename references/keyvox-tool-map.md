@@ -18,7 +18,7 @@
 - **注意**: `total=1` を指定するとキャンセル・チェックアウト済を除外できる
 
 ### 2. チェックイン状況の確認（鍵取得済みか）
-- **主ツール**: `getReservation` で `unitPinList.qrCode` の存在を確認
+- **主ツール**: `getReservation` で `unitPinList[].pin` / `qrShortUrl` の存在を確認
 - **補助**: `getLockHistory` でユーザーが実際に解錠したか確認
 - **前提**: orderId（listReservationsから取得）
 - **注意**: PINが発行されていても解錠していない＝鍵は受け取ったが利用未開始
@@ -31,7 +31,7 @@
 
 ### 4. 滞在中の鍵忘れ・閉じ込め対応
 - **主ツール**:
-  - 鍵忘れ → `getReservation` で `unitPinList.qrUrl` を取得 → ゲストに再送
+  - 鍵忘れ → `getReservation` で `unitPinList[].pin` / `qrShortUrl` を取得 → ゲストに再送 (各 SKILL.md「鍵情報の出力ルール」参照)
   - または `createLockPin` で追加PIN発行
   - 閉じ込め緊急時 → `unlock` で直接遠隔解錠
 - **前提**: orderId または lockId

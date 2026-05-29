@@ -48,6 +48,25 @@ KEYVOX予約管理5業務を1スキルで対応する。
 
 ## A. 新規予約作成
 
+### 🔑 鍵情報の出力ルール（唯一の正典・これ以外は扱わない）
+
+**正規ソースは `getReservation` の `unitPinList[]` のみ。**
+
+ゲストに提示・配布してよいのは、次の **2 つだけ**:
+
+| 出力してよいもの | フィールド | 用途 |
+|---|---|---|
+| 暗証番号 | `pin` (= `panelPin`) | パネル直接入力 |
+| 鍵URL | `qrShortUrl` | スマホウォレットに取り込める短縮鍵URL |
+
+**上記 2 つ以外 (`qrUrl` / `shareUrl` / `urlKey` / `qrCode` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等) は出力も提案もしない。** ユーザーから明示的かつ強い要望があった場合のみ例外的に出す。
+
+**禁止事項:**
+- `getLockPinList` / `get_reservations` の `qrCode` から QR 画像を自作しない（断片トークンのため無効）
+- PIN・URL を推測・補完しない（必ず `getReservation` の実値のみ）
+
+**マルチロックのユニット（玄関＋部屋など）:** 通過する全ドア分の `qrShortUrl` を **ドアごとに 1 本ずつ** 提示する。
+
 ### 手順
 1. **必須情報を聞き取る** (不足があれば質問):
    - 日時範囲 (開始/終了)
@@ -83,15 +102,16 @@ KEYVOX予約管理5業務を1スキルで対応する。
    - **commodityList** (Step 3 で取得した plan を [{commodityId, commodityName, commodityCategory:"Plan", commodityDate:checkin, commodityNum:1, price, priceTax, unitId}] で渡す)
    - unitNum: 1
    - unitList: [{unitId, checkin, checkout, contactName, customerNum}]
-8. **結果報告** (レスポンスから自動取得できる):
+8. **結果報告（鍵は PIN と `qrShortUrl` のみ）**:
+   - 作成直後に `getReservation(placeId, orderId)` を呼び `unitPinList[]` を取得
+   - ドアごとに以下 2 つだけ提示:
    ```
    ✅ 予約を作成しました
    - 予約ID: ABCDEFGHI
-   - PIN: 123456
-   - QR画像URL: https://...
-   - 鍵共有URL: shareUrl
+   - PIN: 330190
+   - 鍵URL（ウォレット取込可）: https://eco.blockchainlock.io/sl/xxxx
    ```
-   レスポンスの `unitList[0]` に `pinCode`, `qrCode`, `qrUrl`, `shareUrl` が含まれる
+   ※ `qrUrl` / `shareUrl` / `qrCode` 等は出力しない
 
 ### エラー対応
 - 空きゼロ → ±30分・前後日の代替案を提示

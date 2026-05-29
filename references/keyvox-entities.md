@@ -73,17 +73,23 @@ erDiagram
 
 **操作**: `unlock`, `createLockPin`, `disableLockPin` 等
 
-### 4. `pin` (暗証番号)
-**意味**: unitに対して期間限定で発行する数字キー。**予約に紐付けて発行されるのが典型**。
+### 4. `pin` (暗証番号 / 鍵)
+**意味**: unit に対して期間限定で発行する数字キー + 鍵URL。**予約に紐付けて発行されるのが典型**。
 
-| 主要フィールド | 説明 |
-|---|---|
-| `pinId` | 一意ID |
-| `qrCode` / `qrUrl` | QRコードの値・画像URL |
-| `shareUrl` | 鍵共有用URL（ゲスト送付用） |
-| `sTime` / `eTime` | 有効期間 (UNIX秒) |
+| 主要フィールド | 種別 | 説明 |
+|---|---|---|
+| `pin` (= `panelPin`) | 🟢 ゲスト配布可 | パネル直接入力用の暗証番号 |
+| `qrShortUrl` | 🟢 ゲスト配布可 | スマホウォレット取込可の短縮鍵URL |
+| `pinId` | 内部用 | 一意ID |
+| `sTime` / `eTime` | 内部用 | 有効期間 (UNIX 秒) |
+| `qrCode` | ⚠️ 配布禁止 | 内部トークン (断片値、QR画像生成には使えない) |
+| `qrUrl` | ⚠️ 配布禁止 | QR画像URL (通常用途なし) |
+| `shareUrl` | ⚠️ 配布禁止 | 別用途の共有URL |
+| `urlKey` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等 | ⚠️ 配布禁止 | いずれもゲスト配布対象外 |
 
-**取得**: `getLockPinList`, `getLockPinStatus`, `getUnitPinList`
+**重要**: ゲスト配布に使うのは `pin`（暗証番号）と `qrShortUrl`（スマホウォレット取込可の短縮鍵URL）の **2 つのみ**。`qrCode` は内部トークン、`qrUrl` は画像、`shareUrl` は別用途で、いずれも通常配布しない。予約に紐づく鍵は `getReservation.unitPinList[]` でワンショット取得する。詳しい運用ルールは各 SKILL.md の「鍵情報の出力ルール」セクション参照。
+
+**取得**: `getReservation` (推奨・上記 2 値を含む)。`getLockPinList` / `getLockPinStatus` / `getUnitPinList` は内部確認用途。
 
 **操作**: `createLockPin`, `changeLockPin`, `disableLockPin`
 
