@@ -61,10 +61,6 @@ KEYVOX予約管理5業務を1スキルで対応する。
 
 **上記 2 つ以外 (`qrUrl` / `shareUrl` / `urlKey` / `qrCode` / `hashCode` / `downloadUrl` / `lockerQrUrl` 等) は出力も提案もしない。** ユーザーから明示的かつ強い要望があった場合のみ例外的に出す。
 
-**禁止事項:**
-- `getLockPinList` / `get_reservations` の `qrCode` から QR 画像を自作しない（断片トークンのため無効）
-- PIN・URL を推測・補完しない（必ず `getReservation` の実値のみ）
-
 **マルチロックのユニット（玄関＋部屋など）:** 通過する全ドア分の `qrShortUrl` を **ドアごとに 1 本ずつ** 提示する。
 
 ### 手順
